@@ -7,7 +7,7 @@ Regra: **nada entra no r2d2 sem caber neste orçamento.** Os números estimados 
 
 | Camada | Estimado | Medido | Fase |
 |---|---|---|---|
-| Ubuntu Server idle | ~350 MB | | 1 |
+| Ubuntu idle, headless (com dockerd, Tailscale e Ollama ociosos) | ~350 MB | **709 MB** (2026-10-12) | 1 |
 | Docker engine | ~100 MB | | 2 |
 | Apps de demo (2–3 APIs + Postgres) | ~1 GB | | 2–3 |
 | k3s server (com Traefik, CoreDNS, metrics-server) | ~700 MB–1 GB | | 5 |

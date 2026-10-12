@@ -57,7 +57,7 @@ ip -br a                          # anote o IP e o MAC da placa de rede (enp...)
 
 ## 5. IP fixo (roteador Vivo)
 
-Em `http://192.168.15.1` → Rede local / DHCP → reserva de endereço: MAC do r2d2 → **192.168.15.10**
+Em `http://192.168.15.1` → Rede local / DHCP → reserva de endereço: MAC do r2d2 → **192.168.15.20**
 (fora da faixa onde o DHCP costuma distribuir). Depois `sudo reboot` e confirme com `ip -br a`.
 
 **Por que reserva e não netplan estático:** um lugar só pra configurar, e o servidor continua funcionando se você trocar de roteador.
@@ -67,7 +67,7 @@ Em `http://192.168.15.1` → Rede local / DHCP → reserva de endereço: MAC do 
 ```bash
 # ~/.ssh/config no Mac: atualize o Host existente
 Host r2d2 llm-pc
-    HostName 192.168.15.10
+    HostName r2d2.local
     User duzera
     IdentityFile ~/.ssh/id_pessoal
     IdentitiesOnly yes

@@ -1,0 +1,92 @@
+# baseline r2d2 — 2026-10-12T11:54:10-03:00
+## sistema
+Ubuntu 26.04.1 LTS
+7.0.0-38-generic
+ 11:54:10 up 1 min,  2 users,  load average: 1,49, 0,72, 0,27
+## cpu
+4
+model name	: AMD Athlon 3000G with Radeon Vega Graphics
+## memória
+               total       usada       livre    compart.  buff/cache  disponível
+Mem.:          13400         709       12013           2         945       12690
+Swap:           4095           0        4095
+## swap
+NAME      TYPE SIZE USED PRIO
+/swap.img file   4G   0B   -1
+## disco
+Sist. Arq.      Tam. Usado Disp. Uso% Montado em
+/dev/sda2       218G   29G  179G  14% /
+efivarfs        128K   20K  104K  16% /sys/firmware/efi/efivars
+/dev/sda1       1,1G  6,4M  1,1G   1% /boot/efi
+## lvm
+(vgs precisa de sudo)
+## top 10 por memória (RSS MB)
+COMMAND           RSS
+dockerd                   84
+snapd                     45
+tailscaled                43
+containerd                41
+ollama                    34
+unattended-upgr           32
+networkd-dispat           29
+systemd-journal           26
+NetworkManager            22
+cups-browsed              21
+## serviços em execução
+avahi-daemon.service
+chrony.service
+containerd.service
+cron.service
+cups-browsed.service
+cups.service
+dbus.service
+docker.service
+getty@tty1.service
+ModemManager.service
+networkd-dispatcher.service
+NetworkManager.service
+ollama.service
+polkit.service
+rsyslog.service
+rtkit-daemon.service
+snapd.service
+ssh.service
+systemd-journald.service
+systemd-logind.service
+systemd-oomd.service
+systemd-resolved.service
+systemd-udevd.service
+tailscaled.service
+unattended-upgrades.service
+user@1000.service
+wpa_supplicant.service
+## portas escutando
+Netid State  Recv-Q Send-Q                               Local Address:Port  Peer Address:PortProcess
+udp   UNCONN 0      0                                          0.0.0.0:5353       0.0.0.0:*          
+udp   UNCONN 0      0                                       127.0.0.54:53         0.0.0.0:*          
+udp   UNCONN 0      0                                    127.0.0.53%lo:53         0.0.0.0:*          
+udp   UNCONN 0      0                                        127.0.0.1:323        0.0.0.0:*          
+udp   UNCONN 0      0                                          0.0.0.0:41641      0.0.0.0:*          
+udp   UNCONN 0      0                                             [::]:5353          [::]:*          
+udp   UNCONN 0      0                                            [::1]:323           [::]:*          
+udp   UNCONN 0      0      [fe80::6c61:18de:6986:c1b7]%wlx782051b3ae70:546           [::]:*          
+udp   UNCONN 0      0                                             [::]:41641         [::]:*          
+tcp   LISTEN 0      4096                     100.101.202.16%tailscale0:65401      0.0.0.0:*          
+tcp   LISTEN 0      4096                                 127.0.0.53%lo:53         0.0.0.0:*          
+tcp   LISTEN 0      4096                                    127.0.0.54:53         0.0.0.0:*          
+tcp   LISTEN 0      4096                                       0.0.0.0:22         0.0.0.0:*          
+tcp   LISTEN 0      4096                                     127.0.0.1:11434      0.0.0.0:*          
+tcp   LISTEN 0      4096                                     127.0.0.1:631        0.0.0.0:*          
+tcp   LISTEN 0      4096                                         [::1]:631           [::]:*          
+tcp   LISTEN 0      4096        [fd7a:115c:a1e0::8701:cad7]%tailscale0:52118         [::]:*          
+tcp   LISTEN 0      4096                                          [::]:22            [::]:*          
+## firewall
+(ufw precisa de sudo)
+## vmstat 1s x5 (us/sy/id/wa)
+procs -----------memory---------- ---swap-- -----io---- -system-- -------cpu-------
+ r  b   swpd  livre   buff  cache   si   so    bi    bo   in   cs us sy id wa st gu
+ 0  0      0 12300776  30600 939888    0    0 10577  1015 4179   11  4 11 84  2  0  0
+ 0  0      0 12300504  30600 940112    0    0     0    12  562  443  0  0 100  0  0  0
+ 0  0      0 12300504  30600 940112    0    0     0  1196 1621 1613  1  0 99  0  0  0
+ 0  0      0 12300504  30600 940120    0    0     0     0  592  512  0  0 100  0  0  0
+ 0  0      0 12300504  30600 940112    0    0     0     0  870  799  0  0 99  0  0  0
