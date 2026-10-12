@@ -15,6 +15,8 @@ Cada decisão técnica é registrada em [`docs/adr/`](docs/adr/) e cada fase tem
 
 ## Arquitetura (fase atual)
 
+Arquitetura alvo, com todas as fases: [`docs/arquitetura.md`](docs/arquitetura.md).
+
 ```mermaid
 flowchart LR
   mac[MacBook<br/>admin] -- SSH chave ed25519 --> r2d2
