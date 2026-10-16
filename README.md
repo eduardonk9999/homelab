@@ -9,7 +9,7 @@ Cada decisão técnica é registrada em [`docs/adr/`](docs/adr/) e cada fase tem
 |---|---|---|
 | CPU | AMD Athlon 3000G — 2C/4T @ 3,5 GHz | **gargalo principal**: builds rodam fora (CI na nuvem) |
 | RAM | 16 GB DDR4 3200 (2×8), **13 GB visíveis** (iGPU reserva o resto) | orçamento por serviço em [`docs/capacidade.md`](docs/capacidade.md) |
-| Disco | SSD SATA 240 GB (Hikvision C100) | ext4 sem LVM, 179 GB livres |
+| Disco | SSD SATA 240 GB (Kingston A400, sem cache DRAM) | ext4 sem LVM, 179 GB livres |
 | Placa-mãe | Biostar A320MH 2.0 (AM4) | upgrade futuro possível: Ryzen 5600G (depende de BIOS) |
 | Rede | hoje Wi-Fi USB (Ethernet sem cabo); LAN 192.168.15.0/24 + Tailscale | IP fixo via reserva DHCP no roteador |
 
