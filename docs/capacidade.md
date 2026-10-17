@@ -10,6 +10,7 @@ Regra: **nada entra no r2d2 sem caber neste orçamento.** Os números estimados 
 | Ubuntu idle, headless (com dockerd, Tailscale e Ollama ociosos) | ~350 MB | **709 MB** (2026-10-12) | 1 |
 | Docker engine | ~100 MB | | 2 |
 | Homepage (nginx, limite 64 MB) | ~20 MB | **5 MB** (2026-10-17) | 2 |
+| Juice Shop + gateway nginx (limites 512 MB + 64 MB) | ~300 MB | **94 MB** (2026-10-17) | 2 |
 | Apps de demo (2–3 APIs + Postgres) | ~1 GB | | 2–3 |
 | k3s server (com Traefik, CoreDNS, metrics-server) | ~700 MB–1 GB | | 5 |
 | Prometheus (retenção 7 dias, scrape 30 s) | ~400–700 MB | | 6 |

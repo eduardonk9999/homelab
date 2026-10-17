@@ -50,11 +50,36 @@ Endurecimento do container, e como provar cada item:
 | porta só em localhost | `ss -tln` → `127.0.0.1:8080`; da LAN, `curl 192.168.15.15:8080` não responde |
 | headers de segurança | `curl -sI 127.0.0.1:8080` → CSP, X-Frame-Options, nosniff |
 
+## 2.3 Lab vulnerável (Juice Shop)
+
+Ver ADR 0003. O Juice Shop fica numa rede `internal` (sem saída); um nginx na frente é a única entrada.
+
+```bash
+# no r2d2
+cd ~/homelab && git pull && cd apps/vuln-lab && docker compose up -d
+```
+
+```bash
+# no Mac: abra http://127.0.0.1:13000
+ssh -N -L 13000:127.0.0.1:3000 r2d2
+```
+
+**Prova de isolamento** (rodar depois de qualquer mudança no compose):
+
+```bash
+# no r2d2: um container na rede do Juice Shop NÃO pode sair
+docker run --rm --network vuln-lab_isolated busybox:1.37 \
+  sh -c "wget -q -T 4 -O /dev/null http://example.com && echo SAIU-PERIGO || echo internet bloqueada; \
+         ping -c1 -W2 192.168.15.1 >/dev/null 2>&1 && echo LAN-ALCANCAVEL || echo LAN bloqueada"
+```
+
+Resultado em 2026-10-17: `internet bloqueada` / `LAN bloqueada`. Juice Shop roda como uid 65532, 89 MB de RAM.
+
 ## Critério de pronto da Fase 2
 
 - [x] `daemon.json` aplicado (logs com rotação, live-restore, métricas em localhost)
 - [x] homepage rodando em Compose, com health check e limites de CPU/RAM
-- [ ] Juice Shop acessível **só** pelo Tailscale; `ss -tlnp` não mostra nenhuma porta de container em `0.0.0.0`
+- [x] Juice Shop acessível **só** por túnel SSH (`127.0.0.1`), em rede sem saída; `ss -tlnp` não mostra nenhuma porta de container em `0.0.0.0`
 - [ ] teste de reinício: `sudo systemctl restart docker` não derruba os containers
 - [ ] teste de reboot: tudo volta sozinho (`restart: unless-stopped`)
 - [ ] consumo real medido e registrado em `capacidade.md`
