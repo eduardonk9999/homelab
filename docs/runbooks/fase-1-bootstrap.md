@@ -146,3 +146,24 @@ Preencha a coluna "Medido" de `docs/capacidade.md` com o idle do sistema.
 - [ ] (bônus) tirar da tomada e religar: o PC liga sozinho e o SSH volta
 - [ ] baseline commitado e `capacidade.md` atualizado
 - [ ] repo publicado no GitHub (`eduardonk9999/homelab`)
+
+## 11. Faxina de pacotes do desktop (feito em 2026-10-17)
+
+O sistema veio de uma instalação desktop. Serviços sem função num servidor aumentam a superfície de ataque
+(o `cups-browsed` teve falha crítica de execução remota em 2024, CVE-2024-47176).
+
+```bash
+sudo apt purge -y cups cups-browsed modemmanager && sudo apt autoremove -y
+```
+
+**Pegadinha:** os drivers de impressora (`hplip`, `printer-driver-*`, `bluez-cups`) dependem de "algum cups",
+e o apt instalou o `legacy-printer-app` no lugar, com a porta **8000 aberta em 0.0.0.0**. Antes de remover o resto,
+proteja o gerenciador de rede, que estava marcado como automático (um `autoremove` futuro derrubaria o Wi-Fi):
+
+```bash
+sudo apt-mark manual network-manager
+sudo apt purge -y legacy-printer-app hplip printer-driver-splix printer-driver-hpcups bluez-cups
+sudo apt autoremove        # sem -y: ler a lista antes de confirmar
+```
+
+Verificação: `ss -tln` sem a porta 8000; `apt-mark showmanual network-manager` retorna o pacote.
