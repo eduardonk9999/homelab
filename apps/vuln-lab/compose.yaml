@@ -1,0 +1,55 @@
+# Lab de bug bounty: aplicação PROPOSITALMENTE vulnerável.
+# Regras (ADR 0003): sem saída de rede, sem porta exposta além de 127.0.0.1, acesso só por túnel SSH.
+name: vuln-lab
+
+services:
+  juice-shop:
+    image: bkimminich/juice-shop:v20.3.0
+    restart: unless-stopped
+    networks:
+      - isolated            # única rede: internal, sem rota pra fora
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  # Porta de entrada única. Na Fase 6 vira o WAF (Coraza + OWASP CRS) com logs pro Loki.
+  gateway:
+    image: nginxinc/nginx-unprivileged:1.29-alpine
+    restart: unless-stopped
+    depends_on:
+      - juice-shop
+    networks:
+      - isolated
+      - edge
+    ports:
+      - "127.0.0.1:3000:8080"
+    volumes:
+      - ./gateway.conf:/etc/nginx/conf.d/default.conf:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 64M
+
+networks:
+  isolated:
+    internal: true          # sem gateway: nada aqui dentro alcança a internet nem a LAN
+  edge: {}                  # só existe para o Docker conseguir publicar a porta do gateway
