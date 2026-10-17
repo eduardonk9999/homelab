@@ -80,6 +80,6 @@ Resultado em 2026-10-17: `internet bloqueada` / `LAN bloqueada`. Juice Shop roda
 - [x] `daemon.json` aplicado (logs com rotação, live-restore, métricas em localhost)
 - [x] homepage rodando em Compose, com health check e limites de CPU/RAM
 - [x] Juice Shop acessível **só** por túnel SSH (`127.0.0.1`), em rede sem saída; `ss -tlnp` não mostra nenhuma porta de container em `0.0.0.0`
-- [ ] teste de reinício: `sudo systemctl restart docker` não derruba os containers
+- [x] teste de reinício: `sudo systemctl restart docker` não derruba os containers (2026-10-17: dockerd reiniciou às 14:44Z, containers mantiveram o `StartedAt` de 14:30Z/14:41Z)
 - [ ] teste de reboot: tudo volta sozinho (`restart: unless-stopped`)
 - [ ] consumo real medido e registrado em `capacidade.md`
