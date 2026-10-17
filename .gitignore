@@ -5,3 +5,23 @@
 secrets/
 *.key
 *.pem
+
+# Terraform: o state guarda segredos em texto puro
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Kubernetes / acesso ao cluster
+kubeconfig*
+*.kubeconfig
+.kube/
+
+# Chaves e credenciais diversas
+id_*
+!id_*.pub
+*.p12
+*.pfx
+tskey-*
