@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>r2d2 · homelab</title>
+  <style>
+    :root { --bg: #f6f5f1; --fg: #1f1e1b; --muted: #6b6a64; --accent: #0f6e56; --card: #fff; --line: #e2e0d8; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #161614; --fg: #ecebe6; --muted: #a09f98; --accent: #5dcaa5; --card: #1f1f1c; --line: #33322e; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, sans-serif; }
+    main { max-width: 720px; margin: 0 auto; padding: 48px 16px; }
+    h1 { font-size: 28px; font-weight: 600; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 32px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 16px; margin: 0 0 8px; }
+    ul { margin: 0; padding-left: 20px; }
+    code { font-family: ui-monospace, monospace; font-size: 14px; }
+    a { color: var(--accent); }
+    .ok { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>r2d2</h1>
+    <p class="sub">Homelab de DevOps num PC antigo · Athlon 3000G · Ubuntu 26.04</p>
+
+    <div class="card">
+      <h2>Status</h2>
+      <p><span class="ok">●</span> no ar, servido por nginx sem privilégios num container só leitura.</p>
+    </div>
+
+    <div class="card">
+      <h2>O que roda aqui</h2>
+      <ul>
+        <li>Fase 1: Linux endurecido (SSH só chave, ufw, atualizações automáticas)</li>
+        <li>Fase 2: containers com limites, health checks e nenhuma porta em <code>0.0.0.0</code></li>
+        <li>Próximas: CI/CD, IaC, k3s, observabilidade</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Código e decisões</h2>
+      <p><a href="https://github.com/eduardonk9999/homelab">github.com/eduardonk9999/homelab</a></p>
+    </div>
+  </main>
+</body>
+</html>

@@ -23,7 +23,7 @@ Esperado: `live-restore=true logging=json-file` e linhas de métricas do engine.
 
 ## Critério de pronto da Fase 2
 
-- [ ] `daemon.json` aplicado (logs com rotação, live-restore, métricas em localhost)
+- [x] `daemon.json` aplicado (logs com rotação, live-restore, métricas em localhost)
 - [ ] homepage rodando em Compose, com health check e limites de CPU/RAM
 - [ ] Juice Shop acessível **só** pelo Tailscale; `ss -tlnp` não mostra nenhuma porta de container em `0.0.0.0`
 - [ ] teste de reinício: `sudo systemctl restart docker` não derruba os containers

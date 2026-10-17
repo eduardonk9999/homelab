@@ -1,0 +1,25 @@
+name: homepage
+
+services:
+  web:
+    build: .
+    image: homepage:local
+    restart: unless-stopped
+
+    # ADR 0002: nunca 0.0.0.0. Por enquanto só localhost; na Fase 3/4 o Cloudflare Tunnel assume.
+    ports:
+      - "127.0.0.1:8080:8080"
+
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 64M
