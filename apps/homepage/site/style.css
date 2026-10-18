@@ -242,3 +242,54 @@ details p b { color: var(--a); }
 @media (max-width: 640px) { html { scroll-padding-top: 112px; } }
 .quiz-opts .btn:disabled { opacity: 1; cursor: default; }
 .quiz-opts .btn:disabled:not(.right):not(.wrong) { opacity: .45; }
+
+/* ---------- simulador 6: camadas ---------- */
+.layers { list-style: none; padding: 0; margin: 8px 0 12px; display: grid; gap: 4px; counter-reset: layer; }
+.layers li {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--k); padding: 6px 10px; font-size: 13px;
+  counter-increment: layer;
+}
+.layers li::before { content: counter(layer); color: var(--d); width: 1.2em; }
+.layers code { background: none; padding: 0; color: var(--w); flex: 1; }
+.layers .tag { font-size: 11px; font-weight: 700; padding: 1px 6px; background: var(--e); color: var(--s); min-width: 9.5em; text-align: center; }
+.layers .tag.cached { background: var(--g); color: var(--k); }
+.layers .tag.build { background: var(--o); color: var(--k); }
+.layers .tag.run { background: var(--y); color: var(--k); }
+.layers li.src code { color: var(--a); }
+
+/* ---------- simulador 7: deploy ---------- */
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 0; }
+@media (max-width: 640px) { .facts { grid-template-columns: 1fr; } }
+.facts div { background: var(--n); padding: 8px 12px; font-size: 13px; }
+.facts b { display: block; font-size: 12px; color: var(--s); font-weight: 700; }
+.facts .bad { color: var(--o); } .facts .good { color: var(--l); } .facts .mid { color: var(--y); }
+
+/* ---------- biblioteca ---------- */
+.lib-controls { margin-top: 16px; }
+.lib-search { margin-left: auto; flex: 1 1 200px; max-width: 280px; }
+.lib-search input {
+  width: 100%; font: 13px var(--mono); color: var(--w); background: var(--k);
+  border: 2px solid var(--d); padding: 8px 10px;
+}
+.lib-search input:focus { outline: none; border-color: var(--a); }
+.lib-progress { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 12px; }
+@media (max-width: 640px) { .lib-progress { grid-template-columns: 1fr; } }
+.lib-progress div { background: var(--k); padding: 6px 10px; font-size: 12px; }
+.lib-progress .bar { display: block; height: 8px; background: var(--e); margin-top: 4px; }
+.lib-progress .bar span { display: block; height: 100%; background: var(--l); transition: width .3s steps(6); }
+.lib-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; align-items: start; }
+@media (max-width: 720px) { .lib-list { grid-template-columns: 1fr; } }
+.lib-card summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lib-card summary .name { margin-right: auto; }
+.lib-card .badge { font-size: 10px; padding: 1px 6px; background: var(--e); color: var(--s); font-weight: 700; }
+.lib-card .badge.f1 { background: var(--o); color: var(--k); }
+.lib-card .badge.f2 { background: var(--a); color: var(--k); }
+.lib-card .badge.f3 { background: var(--l); color: var(--k); }
+.lib-card .badge.r2 { background: var(--y); color: var(--k); }
+.lib-card .badge.ok { background: var(--g); color: var(--k); }
+.lib-card p { font-size: 13.5px; }
+.lib-card .k { color: var(--s); font-size: 11px; font-weight: 700; display: block; text-transform: uppercase; letter-spacing: 1px; }
+.lib-card .trap { border-left: var(--px) solid var(--o); padding-left: 10px; }
+.lib-card label { display: flex; align-items: center; gap: 8px; margin: 4px 14px 12px; font-size: 13px; cursor: pointer; color: var(--l); }
+.lib-card input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--g); }

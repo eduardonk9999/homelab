@@ -698,6 +698,27 @@
       ['Fase 3', 'O que o Trivy barrou na primeira execução do pipeline?',
         ['43 vulnerabilidades HIGH na imagem base nginx 1.29', 'Uma senha no código', 'Um erro de sintaxe no YAML'],
         'A 1.29 tinha parado de receber patches. Correção: base 1.30+, apk upgrade no build, rebuild semanal e Dependabot.'],
+      ['Fase 1', 'O curl dá "Connection refused" num caso e fica parado até timeout no outro. Qual a diferença?',
+        ['Refused: o host respondeu que nada escuta na porta. Timeout: algo descartou o pacote, quase sempre um firewall', 'São a mesma coisa', 'Refused é DNS errado; timeout é senha errada'],
+        'Vimos os dois no r2d2: porta fechada respondia na hora; com o ufw descartando, o teste da LAN ficava pendurado.'],
+      ['Fase 1', 'O r2d2 (4 threads) mostra load average 4,0. Isso significa…',
+        ['CPU no limite: em média 4 processos querendo rodar pra 4 threads', 'Uso de 4% da CPU', 'Que há 4 GB de RAM em uso'],
+        'Load average conta processos rodando ou esperando CPU (e disco). Compare com o número de threads: acima disso, há fila.'],
+      ['Fase 2', 'Por que copiar o package.json e rodar npm ci ANTES de COPY . . ?',
+        ['Pra camada das dependências vir do cache quando só o código muda', 'Porque o npm exige', 'Pra imagem ficar menor'],
+        'Veja o Simulador 6: com a ordem otimizada, editar uma linha leva 21 s em vez de 81 s.'],
+      ['Fase 2', 'Um container parou com exit code 137. A causa mais provável é…',
+        ['SIGKILL, normalmente o kernel matando por falta de memória (OOM)', 'Erro de sintaxe no compose', 'Porta já em uso'],
+        '137 = 128 + 9 (SIGKILL). Confira com docker inspect: State.OOMKilled = true. Aumente o limite ou ache o vazamento.'],
+      ['Fase 2', 'EXPOSE 8080 no Dockerfile deixa a porta acessível de fora?',
+        ['Não: só documenta. Quem publica é ports: no compose (ou -p)', 'Sim, em todas as interfaces', 'Sim, mas só em localhost'],
+        'É por isso que a regra do r2d2 olha o ports: do compose, e não o Dockerfile.'],
+      ['Fase 3', 'O que significa "build once, deploy many"?',
+        ['A mesma imagem (mesmo digest) passa por staging e produção; muda só a configuração', 'Fazer um build por ambiente', 'Fazer deploy várias vezes ao dia'],
+        'Se você reconstrói pra produção, o que vai pro ar não é exatamente o que foi testado.'],
+      ['Fase 3', 'Qual estratégia de deploy expõe a versão nova a uma pequena parte dos usuários primeiro?',
+        ['Canary', 'Recreate', 'Blue-green'],
+        'No blue-green a troca é de uma vez (100%), com volta rápida. No canary, uma fração pequena testa antes de todo mundo.'],
     ];
     const shuffle = (arr) => arr.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
 
@@ -768,6 +789,24 @@
       ['SHA pin', 'lock', 'Fixar uma action pelo hash do commit, que não pode ser alterado depois.'],
       ['Dependabot', 'star', 'Robô do GitHub que abre PR quando sai versão nova de imagem ou action.'],
       ['Supply chain', 'skull', 'Tudo que o seu software usa sem você ter escrito: imagens, actions, bibliotecas.'],
+      ['systemd', 'star', 'Gerenciador de serviços do Linux. O timer de deploy do r2d2 é uma unit systemd.'],
+      ['CIDR', 'cloud', '192.168.15.0/24: os 24 primeiros bits são a rede, sobram 256 endereços pra máquinas.'],
+      ['DNS', 'cloud', 'Traduz nome em IP. O r2d2.local resolve por mDNS, sem servidor DNS. "É sempre DNS."'],
+      ['Load average', 'star', 'Média de processos querendo CPU. Compare com o número de threads (4 no r2d2).'],
+      ['OOM killer', 'skull', 'Quando a RAM acaba, o kernel mata um processo. Em container aparece como exit 137.'],
+      ['Namespaces', 'box', 'O que faz um container "ver" só os próprios processos, rede e arquivos. Ele divide o kernel com o host.'],
+      ['cgroups', 'box', 'O que aplica o limite de CPU e RAM de um container.'],
+      ['Camadas', 'box', 'Cada linha do Dockerfile vira uma camada com cache. Mudou uma, as de baixo são refeitas.'],
+      ['Multi-stage', 'box', 'Um estágio compila, outro só copia o resultado. A imagem final não leva o compilador.'],
+      ['Digest', 'lock', 'O sha256 que identifica uma imagem exata. A tag é um apelido que pode mudar; o digest, não.'],
+      ['PID 1', 'star', 'O primeiro processo do container. Precisa receber o SIGTERM pra desligar com calma.'],
+      ['docker.sock', 'skull', 'Montar o socket do Docker num container dá a ele controle total do host.'],
+      ['OIDC', 'key', 'O CI troca um token temporário por credencial na nuvem, sem chave fixa guardada.'],
+      ['SBOM', 'bug', 'A lista de tudo que existe dentro de uma imagem. Quando sai um CVE novo, você sabe na hora se é afetado.'],
+      ['Canary', 'arrow', 'Deploy que manda uma fração pequena dos usuários pra versão nova antes de todos.'],
+      ['Blue-green', 'arrow', 'Dois ambientes idênticos: sobe o novo do lado e troca o tráfego de uma vez. Volta rápida.'],
+      ['DORA', 'star', 'Quatro métricas de entrega: frequência, lead time (84 s no r2d2), falha de mudança e recuperação.'],
+      ['Idempotência', 'star', 'Rodar de novo dá o mesmo resultado. O ufw.sh e o deploy do r2d2 são idempotentes.'],
     ];
     const info = $('#inv-info');
     const buttons = [];
@@ -794,6 +833,451 @@
   document.querySelectorAll('details').forEach((d, i) => {
     d.addEventListener('toggle', () => { if (d.open) award(`scroll-${i}`, 2, 'pergaminho lido'); });
   });
+
+  // ---------------------------------------------------------------- simulador 6: cache de camadas
+  (() => {
+    const list = $('#layers');
+    if (!list) return;
+    // src: quais mudanças invalidam a camada (code = código, deps = package.json)
+    const ORDERS = {
+      bad: [
+        { i: 'FROM node:22-alpine', sec: 0 },
+        { i: 'WORKDIR /app', sec: 0 },
+        { i: 'COPY . .', sec: 1, src: ['code', 'deps'] },
+        { i: 'RUN npm ci', sec: 60 },
+        { i: 'RUN npm run build', sec: 20 },
+        { i: 'CMD ["node", "dist/server.js"]', sec: 0 },
+      ],
+      good: [
+        { i: 'FROM node:22-alpine', sec: 0 },
+        { i: 'WORKDIR /app', sec: 0 },
+        { i: 'COPY package*.json ./', sec: 1, src: ['deps'] },
+        { i: 'RUN npm ci', sec: 60 },
+        { i: 'COPY . .', sec: 1, src: ['code', 'deps'] },
+        { i: 'RUN npm run build', sec: 20 },
+        { i: 'CMD ["node", "dist/server.js"]', sec: 0 },
+      ],
+    };
+    let order = 'bad';
+    let run = 0;
+    const total = $('#layer-total');
+    const render = () => {
+      list.textContent = '';
+      ORDERS[order].forEach((l) => {
+        const li = document.createElement('li');
+        if (l.src) li.className = 'src';
+        const code = document.createElement('code');
+        code.textContent = l.i;
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = 'aguardando';
+        li.append(code, tag);
+        list.appendChild(li);
+      });
+      total.textContent = 'build: —';
+    };
+    const pick = (o) => {
+      order = o;
+      run++;
+      $('#layer-bad').setAttribute('aria-pressed', String(o === 'bad'));
+      $('#layer-good').setAttribute('aria-pressed', String(o === 'good'));
+      render();
+    };
+    const build = (change) => {
+      const id = ++run;
+      render();
+      const layers = ORDERS[order];
+      const tags = list.querySelectorAll('.tag');
+      let broken = false;
+      let secs = 0;
+      let i = 0;
+      const next = () => {
+        if (id !== run) return;
+        if (i >= layers.length) {
+          total.textContent = `build: ${secs}s`;
+          if (order === 'good' && change === 'code') award('layers-good', 10, 'cache aproveitado');
+          return;
+        }
+        const l = layers[i];
+        if (!broken && l.src && l.src.includes(change)) broken = true;
+        const t = tags[i];
+        if (broken) {
+          t.className = 'tag build';
+          t.textContent = l.sec ? `refeita · ${l.sec}s` : 'refeita';
+          secs += l.sec;
+        } else {
+          t.className = 'tag cached';
+          t.textContent = 'CACHED';
+        }
+        total.textContent = `build: ${secs}s…`;
+        i++;
+        setTimeout(next, REDUCED ? 0 : (broken ? 120 + l.sec * 12 : 140));
+      };
+      next();
+    };
+    $('#layer-bad').addEventListener('click', () => pick('bad'));
+    $('#layer-good').addEventListener('click', () => pick('good'));
+    $('#layer-code').addEventListener('click', () => build('code'));
+    $('#layer-deps').addEventListener('click', () => build('deps'));
+    render();
+  })();
+
+  // ---------------------------------------------------------------- simulador 7: estratégias de deploy
+  (() => {
+    const cv = $('#sim-deploy');
+    if (!cv) return;
+    const A = (v) => [v, v, v, v];
+    // cada passo: versões da fileira A, da fileira B (null = não existe), quem recebe tráfego, legenda
+    const PLANS = {
+      recreate: [
+        { a: A(1), b: null, to: 'a', msg: 'v1 atendendo 100% dos usuários.' },
+        { a: A(0), b: null, to: 'a', msg: 'Derruba todas as instâncias v1… o site está FORA DO AR.', down: true },
+        { a: A(2), b: null, to: 'a', msg: 'Sobe v2 em todas. Simples e barato, mas teve downtime.' },
+      ],
+      rolling: [
+        { a: A(1), b: null, to: 'a', msg: 'v1 atendendo 100%.' },
+        { a: [0, 1, 1, 1], b: null, to: 'a', msg: 'Troca uma instância por vez; as outras seguem atendendo.' },
+        { a: [2, 1, 1, 1], b: null, to: 'a', msg: 'Uma já está em v2. Por um tempo, v1 e v2 convivem.' },
+        { a: [2, 0, 1, 1], b: null, to: 'a', msg: 'Próxima…' },
+        { a: [2, 2, 1, 1], b: null, to: 'a', msg: 'Metade em v2.' },
+        { a: [2, 2, 0, 1], b: null, to: 'a', msg: 'Próxima…' },
+        { a: [2, 2, 2, 1], b: null, to: 'a', msg: 'Quase lá.' },
+        { a: [2, 2, 2, 0], b: null, to: 'a', msg: 'Última…' },
+        { a: A(2), b: null, to: 'a', msg: 'Pronto, sem downtime. Exige que v1 e v2 funcionem juntas.' },
+      ],
+      bluegreen: [
+        { a: A(1), b: null, to: 'a', msg: 'Ambiente azul (v1) atendendo 100%.' },
+        { a: A(1), b: A(2), to: 'a', msg: 'Sobe um ambiente verde inteiro com v2, ao lado. Custo dobrado por um tempo.' },
+        { a: A(1), b: A(2), to: 'b', msg: 'Troca o tráfego de uma vez pro verde. Deu ruim? Volta pro azul em segundos.' },
+        { a: A(0), b: A(2), to: 'b', msg: 'Tudo certo: desliga o azul.' },
+      ],
+      canary: [
+        { a: A(1), b: null, to: 'a', msg: 'v1 atendendo 100%.' },
+        { a: [2, 1, 1, 1], b: null, to: 'a', canary: true, msg: 'Uma instância (o "canário") recebe v2 e uma fração pequena dos usuários.' },
+        { a: [2, 1, 1, 1], b: null, to: 'a', canary: true, msg: 'Observa erros e latência do canário. Se piorar, só uma minoria foi afetada.' },
+        { a: A(2), b: null, to: 'a', msg: 'Métricas boas: promove v2 pra todos.' },
+      ],
+    };
+    const FACTS = {
+      recreate: [['Downtime', 'sim', 'bad'], ['Custo extra', 'nenhum', 'good'], ['Risco exposto', '100% de uma vez', 'bad']],
+      rolling: [['Downtime', 'não', 'good'], ['Custo extra', '~1 instância', 'good'], ['Risco exposto', 'gradual', 'mid']],
+      bluegreen: [['Downtime', 'não', 'good'], ['Custo extra', '100% durante a troca', 'bad'], ['Risco exposto', '100%, com volta imediata', 'mid']],
+      canary: [['Downtime', 'não', 'good'], ['Custo extra', 'pequeno', 'good'], ['Risco exposto', 'só a fração do canário', 'good']],
+    };
+    let strategy = 'recreate';
+    let step = 0;
+    let running = false;
+    let hold = 0;
+    const status = $('#dep-status');
+    const facts = $('#dep-facts');
+    const showFacts = () => {
+      facts.textContent = '';
+      FACTS[strategy].forEach(([k, v, cls]) => {
+        const d = document.createElement('div');
+        const b = document.createElement('b');
+        b.textContent = k;
+        const sp = document.createElement('span');
+        sp.className = cls;
+        sp.textContent = v;
+        d.append(b, sp);
+        facts.appendChild(d);
+      });
+    };
+    const COL = { 0: 'd', 1: 'c', 2: 'l' };
+    const box = (ctx, x, y, v, t) => {
+      rect(ctx, x, y, 28, 20, 'k');
+      rect(ctx, x + 1, y + 1, 26, 18, COL[v]);
+      if (v === 0) {
+        drawTextC(ctx, 'X', x + 14, y + 7, 'k');
+      } else {
+        drawTextC(ctx, `V${v}`, x + 14, y + 7, 'k');
+        if (!REDUCED && (t >> 4) % 2) rect(ctx, x + 23, y + 3, 2, 2, 'w');
+      }
+    };
+    const traffic = (ctx, x, y, color) => {
+      for (let yy = 16; yy < y; yy += 3) rect(ctx, x, yy, 1, 1, color);
+    };
+
+    addScene(cv, 192, 100, (ctx, t) => {
+      if (running) {
+        hold--;
+        if (hold <= 0) {
+          if (step < PLANS[strategy].length - 1) {
+            step++;
+            hold = REDUCED ? 1 : 110;
+            status.textContent = PLANS[strategy][step].msg;
+          } else {
+            running = false;
+            $('#dep-run').disabled = false;
+            award(`deploy-${strategy}`, 5, `deploy ${strategy}`);
+          }
+        }
+      }
+      const st = PLANS[strategy][step];
+      rect(ctx, 0, 0, 192, 100, 'k');
+      drawTextC(ctx, 'USUARIOS', 96, 3, st.down ? 'r' : 's');
+      const xs = [18, 58, 98, 138];
+      const yA = 34;
+      const yB = 72;
+      xs.forEach((x, i) => {
+        const v = st.a[i];
+        const serving = st.to === 'a' && v !== 0;
+        if (serving) traffic(ctx, x + 14, yA, st.canary && i === 0 ? 'y' : COL[v]);
+        box(ctx, x, yA, v, t);
+      });
+      if (st.b) {
+        xs.forEach((x, i) => {
+          const v = st.b[i];
+          if (st.to === 'b') {
+            for (let yy = 16; yy < yB; yy += 3) rect(ctx, x + 30, yy, 1, 1, COL[v]);
+          }
+          box(ctx, x, yB, v, t);
+        });
+        drawText(ctx, 'VERDE', 2, 61, 'l');
+        drawText(ctx, 'AZUL', 2, 26, 'c');
+      }
+      if (st.canary) drawText(ctx, '10%', 4, 24, 'y');
+      if (st.down && !REDUCED && (t >> 3) % 2) drawTextC(ctx, 'FORA DO AR', 96, 60, 'r');
+      if (st.down && REDUCED) drawTextC(ctx, 'FORA DO AR', 96, 60, 'r');
+    });
+
+    document.querySelectorAll('.dep-pick').forEach((b) => b.addEventListener('click', () => {
+      if (running) return;
+      strategy = b.dataset.strategy;
+      step = 0;
+      document.querySelectorAll('.dep-pick').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      status.textContent = PLANS[strategy][0].msg;
+      showFacts();
+    }));
+    $('#dep-run').addEventListener('click', () => {
+      step = 0;
+      running = true;
+      hold = REDUCED ? 1 : 70;
+      status.textContent = PLANS[strategy][0].msg;
+      $('#dep-run').disabled = true;
+    });
+    showFacts();
+  })();
+
+  // ---------------------------------------------------------------- biblioteca
+  (() => {
+    const list = $('#lib-list');
+    if (!list) return;
+    // [fase, nome, usado no r2d2?, em uma frase, na prática, pegadinha]. `crase` vira <code>.
+    const LIB = [
+      [1, 'systemd e units', true, 'O gerenciador de serviços do Linux: sobe, para, reinicia e vigia processos descritos em "units".',
+        '`systemctl status ssh` · `systemctl enable --now X` · `systemctl list-timers`',
+        '`start` liga agora; `enable` liga no próximo boot. `enable --now` faz os dois. Esquecer o enable = serviço some depois do reboot.'],
+      [1, 'journalctl: os logs', true, 'O systemd guarda a saída de todos os serviços num diário consultável.',
+        '`journalctl -u ssh -f` (acompanhar) · `--since "-1h"` · `-p err` (só erros) · `-b` (só desde o último boot)',
+        'Sem `-u` você vê o sistema inteiro e se perde. Filtre sempre por unit e por tempo.'],
+      [1, 'Permissões rwx', false, 'Cada arquivo tem dono, grupo e "outros", cada um com ler (4), escrever (2) e executar (1).',
+        '`chmod 640 arquivo` = dono lê/escreve, grupo lê, outros nada · `chown user:grupo arquivo` · `ls -l`',
+        '`chmod 777` "resolve" qualquer erro abrindo tudo pra todos. Em diretório, o x significa poder entrar nele.'],
+      [1, 'Usuários, grupos e sudo', true, 'Quem você é define o que pode fazer. O sudo executa um comando como root, com registro.',
+        '`id` · `groups` · `sudo usermod -aG grupo user` (o -a é essencial) · `sudo visudo`',
+        'Estar no grupo `docker` equivale a ser root: dá pra montar o / do host num container. Está no ADR 0002 do r2d2.'],
+      [1, 'Pacotes e repositórios', true, 'O apt instala software de repositórios assinados com chave GPG.',
+        '`apt update` (atualiza a lista) · `apt upgrade` (atualiza pacotes) · `apt full-upgrade` (inclui kernel e remoções) · `apt-mark manual X`',
+        '`upgrade` não instala nem remove pacotes; kernel novo costuma exigir `full-upgrade`. E `autoremove` pode levar o que estava marcado como automático (quase levou o network-manager).'],
+      [1, 'Processos e sinais', false, 'Sinais são avisos que o kernel entrega a um processo. TERM pede pra sair; KILL mata sem chance de reagir.',
+        '`ps aux` · `pgrep -fl nome` · `kill -TERM PID` · `kill -KILL PID` (último recurso)',
+        'Começar pelo `kill -9` impede o programa de fechar arquivos e conexões direito. Tente o TERM antes.'],
+      [1, 'CPU, memória e OOM', true, 'Load average é a fila de processos querendo CPU; o OOM killer mata processos quando a RAM acaba.',
+        '`uptime` · `htop` · `free -h` (olhe "disponível") · `vmstat 1` · `dmesg | grep -i oom`',
+        'Load 4 em 4 threads = 100%. E "livre" baixo é normal: o Linux usa RAM sobrando como cache. O que importa é "disponível".'],
+      [1, 'Disco cheio', false, 'Espaço por partição e quem está ocupando.',
+        '`df -h` · `du -sh /var/* | sort -h` · `ncdu /` · `df -i` (inodes)',
+        '`df` diz cheio e o `du` não acha nada? Arquivo apagado mas ainda aberto por um processo (`lsof +L1`), ou inodes esgotados.'],
+      [1, 'IP, CIDR e portas', true, 'IP é o endereço da máquina; /24 diz quantos bits são a rede; a porta identifica o serviço.',
+        '`192.168.15.0/24` = 256 endereços · portas: 22 SSH, 53 DNS, 80 HTTP, 443 HTTPS · `ip -br a` · `ip r`',
+        'TCP abre conexão e garante entrega (SSH, HTTP); UDP não (DNS, VPN, streaming). Regra de firewall precisa do protocolo certo.'],
+      [1, 'DNS', true, 'Traduz nome em IP. O r2d2.local resolve por mDNS (avahi), sem servidor DNS.',
+        '`dig r2d2.local` · `dig +short exemplo.com` · `resolvectl status` · `getent hosts nome`',
+        '"É sempre DNS": cache e TTL fazem uma mudança demorar a aparecer. E o nome pode resolver primeiro pra IPv6 (aconteceu com o r2d2.local).'],
+      [1, 'DHCP e IP fixo', true, 'O roteador entrega IP automático; a reserva por MAC garante sempre o mesmo.',
+        '`ip -br link` (ver o MAC) · reserva no roteador · alternativa: IP estático no netplan',
+        'Sem reserva, o IP muda num reboot: o r2d2 saiu do .4 e foi pro .15, e outro aparelho ficou com o .4.'],
+      [1, 'Diagnóstico de rede', true, 'Descobrir, em camadas, onde a comunicação quebra.',
+        '`ss -tlnp` (o que escuta) · `ping` · `nc -zv host porta` · `curl -v` · `mtr host` · `tcpdump -i any port 22`',
+        '"Connection refused" = o host respondeu que nada escuta ali. Timeout = algo descartou o pacote (firewall). E ping falhando não prova que o host caiu: ICMP pode estar bloqueado.'],
+      [1, 'SSH além do básico', true, 'Config por host, agente de chaves e encaminhamento de portas.',
+        '`~/.ssh/config` (Host, HostName, IdentityFile) · `ssh -L` (traz porta remota) · `ssh -R` (expõe porta local) · `ssh -D` (proxy SOCKS) · `ProxyJump` (bastion)',
+        '`AllowAgentForwarding` ligado num servidor comprometido deixa o atacante usar suas chaves enquanto você está conectado.'],
+      [1, 'cron × systemd timer', true, 'Os dois agendam tarefas; o timer tem logs no journal, dependências e atraso aleatório.',
+        'cron: `*/2 * * * * script.sh` · timer: `OnUnitActiveSec=2min` + `RandomizedDelaySec` · `Persistent=true` roda o que perdeu',
+        'Cron roda com PATH mínimo e manda erro por e-mail (que ninguém lê). Muito script "funciona no terminal e falha no cron" por isso.'],
+      [1, 'fail2ban', false, 'Lê os logs e bane temporariamente o IP que erra a senha várias vezes.',
+        '`fail2ban-client status sshd`',
+        'Não substitui desligar a senha. Com SSH só por chave (como no r2d2), ele vira redução de ruído, não proteção principal.'],
+
+      [2, 'Namespaces e cgroups', true, 'Container não é VM: é um processo com visão isolada (namespaces) e limites de recurso (cgroups), dividindo o kernel do host.',
+        'namespaces: pid, net, mnt, uts, ipc, user · cgroups: CPU, memória, I/O · `docker stats`',
+        'Por dividir o kernel, container isola menos que VM. Por isso as camadas extras: sem root, cap_drop, no-new-privileges.'],
+      [2, 'Camadas e cache de build', false, 'Cada instrução do Dockerfile gera uma camada. Mudou uma, todas as de baixo são refeitas.',
+        'Ordene do que muda menos ao que muda mais · `docker history imagem` · veja o Simulador 6',
+        '`COPY . .` antes de instalar as dependências joga o cache fora a cada linha de código alterada.'],
+      [2, 'Instruções do Dockerfile', true, 'FROM, RUN, COPY, WORKDIR, ENV, USER, EXPOSE, HEALTHCHECK, CMD e ENTRYPOINT.',
+        'Prefira `COPY` a `ADD` (que baixa URL e descompacta) · `USER 101` · `.dockerignore` pra não mandar `.git` e `.env` pro build',
+        '`EXPOSE` só documenta a porta. Quem publica é o `ports:` do compose. Sem `.dockerignore`, segredos locais podem parar dentro da imagem.'],
+      [2, 'CMD, ENTRYPOINT e PID 1', true, 'ENTRYPOINT é o executável; CMD, os argumentos padrão. O processo principal vira o PID 1 e precisa receber o SIGTERM.',
+        'forma JSON: `CMD ["nginx", "-g", "daemon off;"]` · `docker stop` envia TERM e, após 10 s, KILL',
+        'Na forma shell (`CMD nginx -g ...`) o app roda embaixo de um `sh` e não recebe o sinal: o desligamento vira morte forçada. Foi o aviso DL3025 do hadolint no r2d2.'],
+      [2, 'Multi-stage build', false, 'Um estágio compila com todas as ferramentas; o final só copia o resultado.',
+        '`FROM node:22 AS build` … `RUN npm run build` · `FROM nginx:alpine` · `COPY --from=build /app/dist /usr/share/nginx/html`',
+        'Sem multi-stage, a imagem de produção leva compilador, cache do npm e código-fonte: maior e com mais CVEs.'],
+      [2, 'Imagens base mínimas', true, 'alpine (pequena, musl), distroless (sem shell), scratch (vazia). Menos pacote, menos CVE.',
+        'O Juice Shop usa distroless: `docker exec ... sh` não funciona. Debug com um container efêmero na mesma rede (fizemos com busybox).',
+        'A base também envelhece: a nginx 1.29 parou de receber patches e trouxe 43 CVEs. Imagem mínima precisa de rebuild periódico igual.'],
+      [2, 'Tag × digest', true, 'A tag é um apelido que pode mudar (`:main`, `:latest`); o digest `@sha256:…` é imutável.',
+        '`docker inspect --format "{{.RepoDigests}}" imagem` · no compose: `image: nginx@sha256:...`',
+        '`:latest` não quer dizer "a mais nova": é só o nome padrão quando nenhuma tag é dada. Em produção, fixe versão ou digest.'],
+      [2, 'Volumes, bind mounts e tmpfs', true, 'Volume: gerenciado pelo Docker, persiste. Bind mount: uma pasta do host. tmpfs: na memória, some ao parar.',
+        'volume pra banco de dados · bind `./gateway.conf:/etc/nginx/conf.d/default.conf:ro` · `tmpfs: /tmp` (usados no r2d2)',
+        'O que é gravado na camada do container some quando ele é recriado. Dado importante tem que estar num volume.'],
+      [2, 'Redes Docker', true, 'bridge (padrão, com NAT), host (usa a rede do host, sem isolamento), none, e internal (sem saída).',
+        'No compose, um serviço acha o outro pelo nome: `proxy_pass http://juice-shop:3000` · `docker network inspect`',
+        '`network_mode: host` ignora todo o isolamento de rede e a publicação de portas. Raramente é o que você quer.'],
+      [2, 'Variáveis e segredos', false, 'Configuração entra por variável de ambiente; segredo nunca vai dentro da imagem.',
+        '`env_file: .env` (fora do Git) · Docker secrets · cofre (Vault, AWS Secrets Manager)',
+        '`ARG`/`ENV` com senha fica gravado na imagem e aparece no `docker history`. E `docker inspect` mostra as variáveis de qualquer container.'],
+      [2, 'Restart policies', true, 'O que o Docker faz quando o container para: no, on-failure, always, unless-stopped.',
+        '`restart: unless-stopped` (r2d2) · `docker inspect -f "{{.RestartCount}}" nome`',
+        'Restart não conserta nada: um container em loop de crash reinicia pra sempre. Olhe o RestartCount e os logs.'],
+      [2, 'depends_on e prontidão', false, '`depends_on` só define a ordem de criação; não espera a aplicação ficar pronta.',
+        '`depends_on: { db: { condition: service_healthy } }` + healthcheck no serviço `db`',
+        'A API sobe antes de o banco aceitar conexões e cai. É o bug clássico de "no meu PC funciona".'],
+      [2, 'docker.sock', true, 'Montar /var/run/docker.sock num container dá a ele controle total do Docker, ou seja, do host.',
+        'Muita ferramenta pede isso (Watchtower, Portainer, Traefik). Pese o risco antes.',
+        'O deploy do r2d2 por timer no host evitou dar o socket pra um container atualizador.'],
+      [2, 'Comandos do dia a dia', true, 'O kit de sobrevivência pra investigar container.',
+        '`docker ps -a` · `logs -f --tail 100` · `exec -it` · `inspect` · `stats` · `system df` · `compose ps / logs / config`',
+        '`docker system prune -a --volumes` apaga volumes sem uso, inclusive dados de banco de um stack parado.'],
+      [2, 'Limites e exit 137', true, 'Passou do limite de memória, o kernel mata o container.',
+        '`deploy.resources.limits.memory: 64M` · `docker inspect -f "{{.State.OOMKilled}}" nome`',
+        'Exit 137 = 128 + 9 (SIGKILL). Quase sempre é OOM: aumente o limite ou ache o vazamento.'],
+
+      [3, 'Git: branch, PR e merge', true, 'Branch isola o trabalho; o PR junta revisão e CI antes de entrar na main.',
+        'merge (mantém o histórico) · squash (vira um commit, usado nos PRs do Dependabot) · rebase (reaplica em cima da main)',
+        'Nunca faça rebase/force-push em branch que outras pessoas já usam: você reescreve o histórico delas.'],
+      [3, 'Trunk-based × GitFlow', true, 'Trunk: branches curtas e merge frequente na main. GitFlow: develop, release e hotfix.',
+        'O r2d2 é trunk-based: tudo vai pra main por commit ou PR curto, e o pipeline publica.',
+        'Branch de feature que vive semanas vira um merge doloroso e atrasa o feedback. CD combina com branches curtas.'],
+      [3, 'Anatomia de um pipeline', true, 'Gatilho, jobs, steps, runners, dependências, artefatos e cache.',
+        '`on: push / pull_request / schedule` · `needs: checks` · `concurrency` · `cache-from: type=gha` · `matrix`',
+        'Job sem `needs` roda em paralelo: o build pode publicar antes de o teste falhar.'],
+      [3, 'Runners', true, 'A máquina que executa os jobs: hospedada (VM nova a cada job) ou self-hosted (a sua).',
+        'O r2d2 usa runners hospedados do GitHub; o servidor só puxa a imagem pronta.',
+        'Runner self-hosted em repo público: qualquer pessoa abre um PR e roda código na sua máquina.'],
+      [3, 'Segredos no CI e OIDC', true, 'Segredos entram por `secrets.X` e com permissões mínimas. Melhor ainda: OIDC, sem chave fixa.',
+        '`permissions: contents: read` · `GITHUB_TOKEN` (expira no fim do job) · OIDC: o job troca um token temporário por credencial na AWS',
+        'Chave de nuvem fixa guardada no CI é o que vaza e é usado pra minerar cripto. PRs de fork não recebem secrets, de propósito.'],
+      [3, 'Branch protection', false, 'Regras que impedem merge na main sem CI verde e sem revisão.',
+        'Settings → Branches/Rulesets → exigir status checks (`checks`, `build`, `validate`) e PR',
+        'Sem proteção, o CI só avisa: alguém (ou um script) pode empurrar direto pra main com o pipeline vermelho.'],
+      [3, 'Tipos de scan', true, 'Cada um olha pra um lugar diferente.',
+        'segredos (gitleaks) · SAST, o código (CodeQL, Semgrep) · SCA, as dependências e imagens (Trivy, Dependabot) · DAST, o app rodando (ZAP) · IaC (Checkov)',
+        'Nenhum cobre tudo. O r2d2 tem segredos, SCA de imagem e lint; faltam SAST e DAST.'],
+      [3, 'SBOM e assinatura', false, 'SBOM é a lista de tudo dentro da imagem; a assinatura prova quem a gerou.',
+        '`trivy image --format cyclonedx` · `syft imagem` · assinatura com `cosign` (Sigstore)',
+        'Sem SBOM, quando sai um CVE novo você precisa reescanear tudo pra saber se é afetado.'],
+      [3, 'Build once, deploy many', true, 'A mesma imagem, com o mesmo digest, passa por todos os ambientes; só a configuração muda.',
+        'tag `sha-<commit>` imutável · configuração por variável de ambiente',
+        'Fazer um build novo pra produção significa colocar no ar algo que não foi exatamente o testado.'],
+      [3, 'SemVer e conventional commits', true, 'MAJOR.MINOR.PATCH: quebra compatibilidade, adiciona recurso, corrige bug.',
+        '`v20.3.0` (Juice Shop) · commits `feat:` e `fix:` geram versão e changelog automáticos',
+        'Fixar `^1.2.3` aceita qualquer 1.x: uma minor mal versionada pode quebrar seu build. Por isso o lockfile.'],
+      [3, 'Estratégias de deploy', true, 'Recreate, rolling, blue-green e canary trocam downtime, custo e risco entre si.',
+        'Veja o Simulador 7. O r2d2 usa recreate: o container é recriado (alguns segundos fora do ar).',
+        'Rolling e canary exigem que v1 e v2 funcionem ao mesmo tempo, inclusive contra o mesmo banco de dados.'],
+      [3, 'Rollback e roll-forward', true, 'Rollback volta à versão anterior; roll-forward corrige e publica uma nova.',
+        '`git revert <commit>` (o timer reaplica) · ou fixar `image: ...:sha-<anterior>`',
+        'Migração de banco pode impedir o rollback simples. Faça mudanças de schema compatíveis (expand/contract).'],
+      [3, 'Push × pull (GitOps)', true, 'Push: o CI entra no ambiente. Pull: um agente no ambiente sincroniza com o Git.',
+        'r2d2: timer + `docker compose pull`. Em Kubernetes: Flux e ArgoCD.',
+        'Com pull, o Git é a fonte da verdade: mudança feita à mão no servidor é desfeita na próxima sincronização.'],
+      [3, 'Métricas DORA', true, 'Frequência de deploy, lead time, taxa de falha de mudança e tempo de recuperação.',
+        'lead time do r2d2: 84 s do push ao ar · taxa de falha: quantos deploys precisaram de correção',
+        'Medem a saúde do processo de entrega, não a produtividade de uma pessoa. Usar como meta individual distorce tudo.'],
+      [3, 'Ambientes e promoção', false, 'dev → staging → produção, promovendo a mesma imagem.',
+        'staging o mais parecido possível com produção · feature flags separam deploy (código no ar) de release (usuário vê)',
+        'Staging diferente de produção dá falsa confiança: "passou em staging" não prova nada.'],
+      [3, 'Idempotência', true, 'Rodar de novo dá o mesmo resultado, sem efeito colateral.',
+        'O `ufw.sh` e o `homelab-deploy.sh` do r2d2 podem rodar mil vezes. É a base do Ansible (Fase 4).',
+        'Script que faz `echo >> arquivo` a cada execução duplica a linha. Verifique antes de alterar.'],
+    ];
+
+    const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const fmt = (t) => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>');
+    let done = new Set();
+    try { done = new Set(JSON.parse(localStorage.getItem('r2d2-lib') || '[]')); } catch (_) { /* ok */ }
+    const save = () => { try { localStorage.setItem('r2d2-lib', JSON.stringify([...done])); } catch (_) { /* ok */ } };
+
+    const progress = $('#lib-progress');
+    const NAMES = { 1: 'F1 · Linux', 2: 'F2 · Containers', 3: 'F3 · CI/CD' };
+    const renderProgress = () => {
+      progress.textContent = '';
+      [1, 2, 3].forEach((f) => {
+        const all = LIB.filter((c) => c[0] === f);
+        const ok = all.filter((c) => done.has(c[1])).length;
+        const d = document.createElement('div');
+        d.textContent = `${NAMES[f]}: ${ok}/${all.length} dominados`;
+        const bar = document.createElement('span');
+        bar.className = 'bar';
+        const fill = document.createElement('span');
+        fill.style.width = `${(ok / all.length) * 100}%`;
+        bar.appendChild(fill);
+        d.appendChild(bar);
+        progress.appendChild(d);
+      });
+    };
+
+    const cards = LIB.map(([f, name, r2, what, how, trap]) => {
+      const d = document.createElement('details');
+      d.className = 'lib-card';
+      d.dataset.f = String(f);
+      d.dataset.text = norm(`${name} ${what} ${how} ${trap}`);
+      d.innerHTML = `<summary><span class="name">${esc(name)}</span>`
+        + `<span class="badge f${f}">F${f}</span>${r2 ? '<span class="badge r2">no r2d2</span>' : ''}`
+        + '<span class="badge ok" hidden>dominei</span></summary>'
+        + `<p><span class="k">Em uma frase</span>${fmt(what)}</p>`
+        + `<p><span class="k">Na prática</span>${fmt(how)}</p>`
+        + `<p class="trap"><span class="k">Pegadinha</span>${fmt(trap)}</p>`
+        + '<label><input type="checkbox"> dominei: consigo explicar sem olhar</label>';
+      const cb = d.querySelector('input');
+      const badge = d.querySelector('.badge.ok');
+      cb.checked = done.has(name);
+      badge.hidden = !cb.checked;
+      cb.addEventListener('change', () => {
+        if (cb.checked) { done.add(name); award(`lib-${name}`, 3, 'conceito dominado'); } else done.delete(name);
+        badge.hidden = !cb.checked;
+        save();
+        renderProgress();
+      });
+      list.appendChild(d);
+      return d;
+    });
+
+    let fase = '0';
+    const q = $('#lib-q');
+    const apply = () => {
+      const term = norm(q.value.trim());
+      let shown = 0;
+      cards.forEach((c) => {
+        const ok = (fase === '0' || c.dataset.f === fase) && (!term || c.dataset.text.includes(term));
+        c.hidden = !ok;
+        if (ok) shown++;
+      });
+      $('#lib-empty').hidden = shown > 0;
+    };
+    document.querySelectorAll('.lib-filter').forEach((b) => b.addEventListener('click', () => {
+      fase = b.dataset.f;
+      document.querySelectorAll('.lib-filter').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      apply();
+    }));
+    q.addEventListener('input', apply);
+    renderProgress();
+  })();
 
   requestAnimationFrame(loop);
 })();

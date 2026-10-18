@@ -13,7 +13,7 @@
 <header class="hud">
   <a class="hud-logo" href="#inicio" aria-label="r2d2 homelab, início"><canvas class="ptitle" data-text="R2D2" data-scale="3" data-color="y" aria-hidden="true"></canvas></a>
   <nav class="hud-nav" aria-label="Fases">
-    <a href="#fase1">F1</a><a href="#fase2">F2</a><a href="#fase3">F3</a><a href="#quiz">Quiz</a><a href="#itens">Itens</a>
+    <a href="#fase1">F1</a><a href="#fase2">F2</a><a href="#fase3">F3</a><a href="#biblioteca">Biblioteca</a><a href="#quiz">Quiz</a><a href="#itens">Itens</a>
   </nav>
   <div class="hud-xp" aria-live="polite">
     <span id="xp-text">XP 0 · NV 1</span>
@@ -149,6 +149,23 @@
       E o CI barra qualquer mudança que tire o <code>internal: true</code>.
     </aside>
 
+    <h3>Simulador 6 · O cache de camadas</h3>
+    <p>Cada linha do Dockerfile vira uma <b>camada</b>. Se uma camada muda, todas as de baixo são refeitas. Escolha a ordem das linhas e o que você mudou no projeto, e veja quanto tempo o build leva.</p>
+    <div class="controls">
+      <button id="layer-bad" class="btn btn-toggle" aria-pressed="true">Ordem ingênua</button>
+      <button id="layer-good" class="btn btn-toggle" aria-pressed="false">Ordem otimizada</button>
+    </div>
+    <ol id="layers" class="layers" aria-live="polite"></ol>
+    <div class="controls">
+      <button id="layer-code" class="btn">✎ Editei 1 linha do código</button>
+      <button id="layer-deps" class="btn">＋ Adicionei uma dependência</button>
+      <p id="layer-total" class="stats clock" aria-live="polite">build: —</p>
+    </div>
+    <aside class="tip">
+      <b>Regra de ouro:</b> ordene do que muda menos (sistema, dependências) pro que muda mais (seu código).
+      Copiar só o <code>package.json</code> antes do <code>npm ci</code> faz o passo mais caro ser reaproveitado do cache.
+    </aside>
+
     <h3>Os escudos da homepage</h3>
     <p>Defesa em profundidade: se alguém achar uma falha no nginx, ainda esbarra em cada uma destas camadas. Toque em um escudo.</p>
     <div class="shields" role="group" aria-label="Camadas de proteção">
@@ -195,6 +212,19 @@
     </div>
     <pre id="pipe-log" class="term" aria-live="polite">aguardando um commit…</pre>
 
+    <h3>Simulador 7 · Estratégias de deploy</h3>
+    <p>Quatro instâncias rodam a versão 1 (azul). Escolha como trocar pela versão 2 (verde) e observe downtime, custo e risco.</p>
+    <canvas id="sim-deploy" class="scene" aria-label="Simulador de estratégias de deploy: quatro instâncias trocam da versão 1 para a 2 em recreate, rolling, blue-green ou canary."></canvas>
+    <div class="controls">
+      <button class="btn btn-toggle dep-pick" data-strategy="recreate" aria-pressed="true">Recreate</button>
+      <button class="btn btn-toggle dep-pick" data-strategy="rolling" aria-pressed="false">Rolling</button>
+      <button class="btn btn-toggle dep-pick" data-strategy="bluegreen" aria-pressed="false">Blue-green</button>
+      <button class="btn btn-toggle dep-pick" data-strategy="canary" aria-pressed="false">Canary</button>
+      <button id="dep-run" class="btn btn-good">▶ Deploy v2</button>
+    </div>
+    <p id="dep-status" class="shield-info" aria-live="polite">Escolha uma estratégia e clique em Deploy v2.</p>
+    <div id="dep-facts" class="facts"></div>
+
     <h3>Push ou pull?</h3>
     <div class="versus">
       <div class="vs-card vs-bad">
@@ -225,6 +255,25 @@
         <p><b>O que é:</b> o registry de imagens do GitHub. Cada imagem sai com duas tags: <code>sha-…</code> (imutável, pra rollback) e <code>main</code> (a última).</p>
       </details>
     </div>
+  </section>
+
+  <!-- ===================== BIBLIOTECA ===================== -->
+  <section id="biblioteca" class="panel">
+    <h2 class="sr-only">Biblioteca do DevOps pleno</h2>
+    <canvas class="ptitle" data-text="BIBLIOTECA" data-scale="4" data-color="o" aria-hidden="true"></canvas>
+    <p>O que um DevOps pleno precisa ter na ponta da língua sobre <b>Linux, containers e CI/CD</b>, os temas das fases 1 a 3.
+      Cada carta tem a ideia em uma frase, os comandos, e a <b>pegadinha</b> que costuma derrubar gente em entrevista e em produção.
+      Marque <em>dominei</em> quando conseguir explicar sem olhar.</p>
+    <div class="controls lib-controls">
+      <button class="btn btn-toggle lib-filter" data-f="0" aria-pressed="true">Todas</button>
+      <button class="btn btn-toggle lib-filter" data-f="1" aria-pressed="false">F1 · Linux</button>
+      <button class="btn btn-toggle lib-filter" data-f="2" aria-pressed="false">F2 · Containers</button>
+      <button class="btn btn-toggle lib-filter" data-f="3" aria-pressed="false">F3 · CI/CD</button>
+      <label class="lib-search"><span class="sr-only">Buscar conceito</span><input id="lib-q" type="search" placeholder="buscar: dns, cache, oidc…" autocomplete="off"></label>
+    </div>
+    <div id="lib-progress" class="lib-progress" aria-live="polite"></div>
+    <div id="lib-list" class="lib-list"></div>
+    <p id="lib-empty" class="shield-info" hidden>Nenhum conceito encontrado.</p>
   </section>
 
   <!-- ===================== QUIZ ===================== -->
