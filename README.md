@@ -28,6 +28,10 @@ flowchart LR
   gh[GitHub<br/>este repo] -. configs versionadas .- mac
 ```
 
+## Guia de estudo
+
+O que cada peça é, por que está aqui e como provar que funciona: [`docs/guia/`](docs/guia/README.md).
+
 ## Roadmap
 
 | Fase | Tema | Status |
