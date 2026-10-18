@@ -45,4 +45,13 @@ journalctl -u homelab-deploy.service -n 20       # histórico de deploys
 - [x] pacote `homelab-homepage` público no GHCR (pull anônimo ok)
 - [x] timer ativo no r2d2, homepage rodando a imagem do GHCR (primeiro deploy 2026-10-18 09:43, commit 9314ac2)
 - [x] demo: mudança no HTML chega ao r2d2 sem nenhum comando manual — **84 s** do `git push` (09:44:26) ao deploy (09:45:50), commit 8216dff; CI levou ~80 s
-- [ ] PR com porta sem IP de bind é barrado pelo pipeline
+- [x] PR com porta sem IP de bind é barrado pelo pipeline — PR #3, fechado sem merge
+
+## Decisões tomadas durante a fase
+
+- **nginx mainline (1.31) em vez de stable (1.30).** A equipe do nginx recomenda a mainline: as correções
+  chegam nela primeiro, e o Trivy + rebuild semanal cobrem o risco de mudança. Aceito pelo PR #1/#2 do Dependabot,
+  depois do pipeline verde.
+- **Workflow `compose` para todos os stacks.** O PR #2 (vuln-lab) não tinha CI nenhum; agora toda mudança em
+  compose passa por sintaxe, regra de portas e checagem de que o Juice Shop continua em rede `internal`.
+- **vuln-lab também no deploy por pull.** O merge do PR #2 chegou ao r2d2 sozinho; isolamento re-testado depois.

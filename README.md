@@ -34,7 +34,7 @@ flowchart LR
 |---|---|---|
 | 1 | Linux base: SSH, usuários, firewall, rede, atualizações | 🚧 em andamento |
 | 2 | Containers: Docker + Compose, volumes, health checks, limites | 🚧 em andamento |
-| 3 | CI/CD: GitHub Actions → GHCR → deploy no r2d2 | 🚧 em andamento |
+| 3 | CI/CD: GitHub Actions → GHCR → deploy no r2d2 | ✅ concluída (2026-10-18) |
 | 4 | IaC: Ansible (host) + Terraform (recursos externos) | ⏳ |
 | 5 | Kubernetes: k3s single-node, Helm | ⏳ |
 | 6 | Observabilidade e confiabilidade: Prometheus, Grafana, Loki, backups, falhas simuladas | ⏳ |
