@@ -12,6 +12,8 @@ on:
       - "apps/homepage/**"
       - "scripts/check-ports.sh"
       - ".github/workflows/homepage.yml"
+  schedule:
+    - cron: "17 6 * * 1" # segunda 03:17 (BRT): rebuild para pegar patches de segurança
   workflow_dispatch:
 
 # Mínimo por padrão; o job de build pede só o que precisa.
