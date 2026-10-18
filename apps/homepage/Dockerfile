@@ -1,5 +1,5 @@
 # Imagem nginx que já roda como usuário sem privilégio (uid 101) e escuta na 8080.
-FROM nginxinc/nginx-unprivileged:1.30-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 
 # A imagem base atrasa patches do Alpine; aplicamos os de segurança no build
 # e o CI reconstrói toda semana (schedule) para pegar os próximos.
