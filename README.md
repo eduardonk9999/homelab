@@ -32,6 +32,11 @@ flowchart LR
 
 O que cada peça é, por que está aqui e como provar que funciona: [`docs/guia/`](docs/guia/README.md).
 
+A **homepage do r2d2** é a versão interativa desse guia: um "jogo" em pixel art com 5 simuladores (firewall,
+SSH senha × chave, Docker × ufw, isolamento do Juice Shop, esteira do pipeline), quiz e glossário. Sem nenhuma
+dependência externa: a fonte de pixel e os sprites são desenhados em JavaScript, porque a CSP só permite `'self'`.
+Código em [`apps/homepage/site/`](apps/homepage/site/).
+
 ## Roadmap
 
 | Fase | Tema | Status |
