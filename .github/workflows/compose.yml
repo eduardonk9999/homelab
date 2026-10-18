@@ -1,0 +1,44 @@
+name: compose
+
+# Valida TODOS os stacks do Compose: sintaxe e regra de portas (ADR 0002).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/**/compose*.yaml"
+      - "apps/**/*.conf"
+      - "scripts/check-ports.sh"
+      - ".github/workflows/compose.yml"
+  pull_request:
+    paths:
+      - "apps/**/compose*.yaml"
+      - "apps/**/*.conf"
+      - "scripts/check-ports.sh"
+      - ".github/workflows/compose.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Portas com IP de bind (ADR 0002)
+        run: ./scripts/check-ports.sh
+
+      - name: Sintaxe dos compose
+        run: |
+          for f in apps/*/compose.yaml; do
+            echo "== $f"
+            docker compose -f "$f" config --quiet
+          done
+
+      - name: vuln-lab continua isolado (ADR 0003)
+        run: |
+          internal=$(docker compose -f apps/vuln-lab/compose.yaml config --format json | jq -r '.networks.isolated.internal')
+          nets=$(docker compose -f apps/vuln-lab/compose.yaml config --format json | jq -r '.services["juice-shop"].networks | keys | join(",")')
+          echo "isolated.internal=$internal  juice-shop.networks=$nets"
+          [ "$internal" = "true" ] && [ "$nets" = "isolated" ]

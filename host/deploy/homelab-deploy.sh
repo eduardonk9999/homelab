@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO="$HOME/homelab"
-STACKS=(apps/homepage)
+STACKS=(apps/homepage apps/vuln-lab)
 
 cd "$REPO"
 git pull --ff-only --quiet
