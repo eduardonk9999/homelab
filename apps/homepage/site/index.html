@@ -4,48 +4,254 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>r2d2 · homelab</title>
-  <style>
-    :root { --bg: #f6f5f1; --fg: #1f1e1b; --muted: #6b6a64; --accent: #0f6e56; --card: #fff; --line: #e2e0d8; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg: #161614; --fg: #ecebe6; --muted: #a09f98; --accent: #5dcaa5; --card: #1f1f1c; --line: #33322e; }
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, sans-serif; }
-    main { max-width: 720px; margin: 0 auto; padding: 48px 16px; }
-    h1 { font-size: 28px; font-weight: 600; margin: 0 0 4px; }
-    .sub { color: var(--muted); margin: 0 0 32px; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-    .card h2 { font-size: 16px; margin: 0 0 8px; }
-    ul { margin: 0; padding-left: 20px; }
-    code { font-family: ui-monospace, monospace; font-size: 14px; }
-    a { color: var(--accent); }
-    .ok { color: var(--accent); font-weight: 600; }
-  </style>
+  <meta name="description" content="Homelab de DevOps num PC antigo, explicado como um jogo em pixel art.">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-  <main>
-    <h1>r2d2</h1>
-    <p class="sub">Homelab de DevOps num PC antigo · Athlon 3000G · Ubuntu 26.04</p>
 
-    <div class="card">
-      <h2>Status</h2>
-      <p><span class="ok">●</span> no ar, servido por nginx sem privilégios num container só leitura.</p>
+<header class="hud">
+  <a class="hud-logo" href="#inicio" aria-label="r2d2 homelab, início"><canvas class="ptitle" data-text="R2D2" data-scale="3" data-color="y" aria-hidden="true"></canvas></a>
+  <nav class="hud-nav" aria-label="Fases">
+    <a href="#fase1">F1</a><a href="#fase2">F2</a><a href="#fase3">F3</a><a href="#quiz">Quiz</a><a href="#itens">Itens</a>
+  </nav>
+  <div class="hud-xp" aria-live="polite">
+    <span id="xp-text">XP 0 · NV 1</span>
+    <span class="xp-bar"><span id="xp-fill"></span></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== INÍCIO ===================== -->
+  <section id="inicio" class="hero">
+    <h1 class="sr-only">r2d2 homelab</h1>
+    <canvas class="ptitle hero-title" data-text="R2D2 HOMELAB" data-scale="6" data-color="y" aria-hidden="true"></canvas>
+    <p class="hero-sub">Um laboratório de DevOps num PC antigo, explicado como um jogo.</p>
+    <canvas id="hero" class="scene" aria-label="Cena animada: o Mac envia pacotes SSH ao servidor r2d2 pelo cabo, enquanto ataques vindos da internet batem no firewall e são bloqueados."></canvas>
+    <div class="hero-stats">
+      <div class="stat"><b>84s</b><span>do commit à produção</span></div>
+      <div class="stat"><b>43</b><span>CVEs barrados pelo pipeline</span></div>
+      <div class="stat"><b>0</b><span>portas abertas pra internet</span></div>
+      <div class="stat"><b>~700MB</b><span>de RAM em idle</span></div>
+    </div>
+    <a class="btn btn-start blink" href="#mapa">▶ Press start</a>
+  </section>
+
+  <!-- ===================== MAPA ===================== -->
+  <section id="mapa" class="panel">
+    <h2 class="sr-only">Mapa de fases</h2>
+    <canvas class="ptitle" data-text="MAPA DE FASES" data-scale="4" data-color="a" aria-hidden="true"></canvas>
+    <p>Cada fase é um nível. As três primeiras já foram vencidas; as próximas estão trancadas até chegarmos lá.</p>
+    <ol class="map">
+      <li><a class="node done" href="#fase1"><canvas class="icon" data-sprite="star" aria-hidden="true"></canvas><span>1 · Fortaleza</span><small>Linux base</small></a></li>
+      <li><a class="node done" href="#fase2"><canvas class="icon" data-sprite="star" aria-hidden="true"></canvas><span>2 · Containers</span><small>Docker + Compose</small></a></li>
+      <li><a class="node done" href="#fase3"><canvas class="icon" data-sprite="star" aria-hidden="true"></canvas><span>3 · A esteira</span><small>CI/CD</small></a></li>
+      <li><span class="node locked"><canvas class="icon" data-sprite="lock" aria-hidden="true"></canvas><span>4 · Receitas</span><small>Ansible + Terraform</small></span></li>
+      <li><span class="node locked"><canvas class="icon" data-sprite="lock" aria-hidden="true"></canvas><span>5 · O cluster</span><small>k3s</small></span></li>
+      <li><span class="node locked"><canvas class="icon" data-sprite="lock" aria-hidden="true"></canvas><span>6 · O farol</span><small>Observabilidade</small></span></li>
+      <li><span class="node locked"><canvas class="icon" data-sprite="lock" aria-hidden="true"></canvas><span>7 · O troféu</span><small>Portfólio</small></span></li>
+    </ol>
+  </section>
+
+  <!-- ===================== FASE 1 ===================== -->
+  <section id="fase1" class="panel level">
+    <h2 class="sr-only">Fase 1: Fortaleza, Linux base</h2>
+    <p class="level-tag">Fase 1 · concluída</p>
+    <canvas class="ptitle" data-text="A FORTALEZA" data-scale="4" data-color="o" aria-hidden="true"></canvas>
+    <p class="mission"><b>Missão:</b> transformar um Ubuntu desktop num servidor que faz só o que precisa, aceita só quem precisa e se atualiza sozinho.</p>
+
+    <h3>Simulador 1 · O firewall</h3>
+    <p>Três tipos de pacote querem chegar na porta 22 (SSH) do r2d2. Ligue e desligue o <code>ufw</code> e veja o que passa.</p>
+    <canvas id="sim-fw" class="scene" aria-label="Simulador de firewall: pacotes da internet, da LAN e do Tailscale vão até o r2d2. Com o ufw ligado, os da internet são bloqueados."></canvas>
+    <div class="controls">
+      <button id="fw-toggle" class="btn btn-bad" aria-pressed="false">ufw: inativo</button>
+      <p id="fw-stats" class="stats" aria-live="polite">Da internet chegaram: 0 · bloqueados: 0</p>
+    </div>
+    <aside class="oops">
+      <b>O que deu errado de verdade.</b> O serviço <code>ufw</code> aparecia como <em>ativo</em>, mas o firewall estava
+      com <code>Estado: inativo</code>. Serviço rodando não é regra aplicada. E o r2d2 tem <b>IPv6 público</b>: sem NAT,
+      a porta 22 estava acessível direto da internet, exatamente como no simulador desligado.
+    </aside>
+
+    <h3>Simulador 2 · Senha ou chave?</h3>
+    <p>Um atacante tenta adivinhar a senha do SSH. Escolha como o servidor autentica e rode o ataque.</p>
+    <div class="controls">
+      <button id="ssh-pass" class="btn btn-toggle" aria-pressed="true">PasswordAuthentication yes</button>
+      <button id="ssh-key" class="btn btn-toggle" aria-pressed="false">PasswordAuthentication no</button>
+      <button id="ssh-run" class="btn">▶ Rodar ataque</button>
+    </div>
+    <pre id="ssh-term" class="term" aria-live="polite">$ _</pre>
+
+    <h3>Pergaminhos da fase</h3>
+    <div class="scrolls">
+      <details><summary>Servidor headless</summary>
+        <p><b>O que é:</b> um sistema sem interface gráfica, administrado só por terminal.</p>
+        <p><b>Por que:</b> o GNOME gastava RAM e CPU, e cada programa a mais é uma possível falha. O idle caiu de 925 MB pra ~700 MB.</p>
+        <p><b>Como provar:</b> <code>systemctl get-default</code> → <code>multi-user.target</code></p>
+      </details>
+      <details><summary>SSH só com chave</summary>
+        <p><b>O que é:</b> um par de chaves. A privada fica no Mac; o servidor guarda só a pública. Nada secreto trafega.</p>
+        <p><b>Por que:</b> senha pode ser adivinhada; uma chave ed25519, não. Root e senha estão bloqueados.</p>
+        <p><b>Detalhe:</b> o arquivo se chama <code>10-hardening.conf</code> porque o sshd usa o primeiro valor que encontra, em ordem alfabética.</p>
+      </details>
+      <details><summary>Fingerprint</summary>
+        <p><b>O que é:</b> a impressão digital da chave do servidor, mostrada na primeira conexão.</p>
+        <p><b>Por que:</b> prova que você fala com a máquina certa. Quando o IP do r2d2 mudou, conferimos que a impressão era a mesma antes de aceitar.</p>
+      </details>
+      <details><summary>Atualizações automáticas</summary>
+        <p><b>O que é:</b> o <code>unattended-upgrades</code> instala sozinho as correções de segurança.</p>
+        <p><b>Por que:</b> a maioria das invasões explora falhas já corrigidas em sistemas que ninguém atualizou.</p>
+        <p><b>Curiosidade:</b> 18 pacotes "presos" eram <em>phased updates</em>: o Ubuntu libera aos poucos pra pegar pacote quebrado cedo.</p>
+      </details>
+      <details><summary>Superfície de ataque</summary>
+        <p><b>O que é:</b> tudo que um atacante pode tentar usar: portas, serviços, programas.</p>
+        <p><b>O que aconteceu:</b> ao remover o <code>cups</code>, o apt instalou outro serviço de impressão no lugar, que abriu a <b>porta 8000</b>. Só vimos olhando <code>ss -tlnp</code>.</p>
+      </details>
+      <details><summary>Medir antes de comprar</summary>
+        <p><b>O que é:</b> uma baseline, a foto do consumo num momento conhecido.</p>
+        <p><b>O que revelou:</b> 16 GB instalados mas 13 GB visíveis (a iGPU reserva o resto), memória a 2400 em vez de 2667, e o SSD era outro modelo.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ===================== FASE 2 ===================== -->
+  <section id="fase2" class="panel level">
+    <h2 class="sr-only">Fase 2: Containers</h2>
+    <p class="level-tag">Fase 2 · concluída</p>
+    <canvas class="ptitle" data-text="CONTAINERS" data-scale="4" data-color="a" aria-hidden="true"></canvas>
+    <p class="mission"><b>Missão:</b> rodar a homepage e um site propositalmente vulnerável, cada um com só as permissões, a rede e os recursos de que precisa.</p>
+
+    <h3>Simulador 3 · O Docker pula o firewall</h3>
+    <p>O ufw bloqueia tudo, mas o Docker escreve regras próprias que passam <b>antes</b> dele. Troque o bind da porta e veja quem chega no container.</p>
+    <canvas id="sim-bind" class="scene" aria-label="Simulador de bind: com a porta publicada em 0.0.0.0 o pacote da LAN fura o firewall pelo Docker; com 127.0.0.1 só o túnel SSH chega."></canvas>
+    <div class="controls">
+      <button id="bind-any" class="btn btn-toggle" aria-pressed="true">ports: "8080:8080"</button>
+      <button id="bind-local" class="btn btn-toggle" aria-pressed="false">ports: "127.0.0.1:8080:8080"</button>
+      <p id="bind-stats" class="stats" aria-live="polite">Da LAN chegaram: 0 · pelo túnel: 0</p>
+    </div>
+    <aside class="tip">
+      <b>A regra do r2d2 (ADR 0002):</b> toda porta declara o IP. <code>127.0.0.1</code> pra uso interno, e o acesso
+      de fora é por <b>túnel SSH</b>: <code>ssh -N -L 18080:127.0.0.1:8080 r2d2</code> traz a porta do servidor pra dentro do Mac, criptografada.
+    </aside>
+
+    <h3>Simulador 4 · A fuga do Juice Shop</h3>
+    <p>O Juice Shop é vulnerável de propósito. Imagine que um atacante conseguiu rodar código nele e abriu um <em>reverse shell</em>. Pra onde ele vai?</p>
+    <canvas id="sim-jail" class="scene" aria-label="Simulador de isolamento: o Juice Shop tenta alcançar a internet e a LAN. Com a rede internal ativa, os pacotes param na fronteira; você ainda acessa pelo gateway."></canvas>
+    <div class="controls">
+      <button id="jail-shell" class="btn btn-bad">☠ Disparar reverse shell</button>
+      <button id="jail-toggle" class="btn btn-good" aria-pressed="true">internal: true</button>
+      <p id="jail-stats" class="stats" aria-live="polite">Escaparam: 0 · contidos: 0</p>
+    </div>
+    <aside class="oops">
+      <b>Como provamos de verdade:</b> um container de teste dentro da rede do lab tentou <code>wget example.com</code> e
+      <code>ping</code> no roteador. Resultado: <code>internet bloqueada</code> e <code>LAN bloqueada</code>.
+      E o CI barra qualquer mudança que tire o <code>internal: true</code>.
+    </aside>
+
+    <h3>Os escudos da homepage</h3>
+    <p>Defesa em profundidade: se alguém achar uma falha no nginx, ainda esbarra em cada uma destas camadas. Toque em um escudo.</p>
+    <div class="shields" role="group" aria-label="Camadas de proteção">
+      <button class="shield" data-info="O processo roda como uid 101, não como root. Prova: docker exec homepage-web-1 id -u → 101."><canvas class="icon" data-sprite="shield" aria-hidden="true"></canvas>Sem root</button>
+      <button class="shield" data-info="read_only: true. Só /tmp aceita escrita, e fica em memória. Prova: tentar touch dá Read-only file system."><canvas class="icon" data-sprite="lock" aria-hidden="true"></canvas>Só leitura</button>
+      <button class="shield" data-info="cap_drop: ALL tira os superpoderes do kernel que um root teria (mudar dono de arquivo, abrir porta baixa…)."><canvas class="icon" data-sprite="shield" aria-hidden="true"></canvas>Sem capabilities</button>
+      <button class="shield" data-info="no-new-privileges impede que um programa ganhe privilégio no meio do caminho (por exemplo, via setuid)."><canvas class="icon" data-sprite="shield" aria-hidden="true"></canvas>Sem escalada</button>
+      <button class="shield" data-info="Teto de 0,25 CPU e 64 MB de RAM. A homepage usa 5 MB. Um ataque não derruba o servidor inteiro."><canvas class="icon" data-sprite="box" aria-hidden="true"></canvas>Limites</button>
+      <button class="shield" data-info="Health check em /healthz a cada 30 s e restart: unless-stopped. O Docker sabe se o site responde de verdade e religa se cair."><canvas class="icon" data-sprite="star" aria-hidden="true"></canvas>Health check</button>
+    </div>
+    <p id="shield-info" class="shield-info" aria-live="polite">Escolha um escudo pra ver o que ele faz.</p>
+
+    <div class="scrolls">
+      <details><summary>Imagem, container e Compose</summary>
+        <p><b>Imagem:</b> pacote só leitura com a aplicação e suas dependências. <b>Container:</b> a imagem em execução, isolada pelo kernel.
+        <b>Compose:</b> um YAML que descreve containers, redes e volumes; <code>docker compose up -d</code> sobe tudo.</p>
+      </details>
+      <details><summary>live-restore</summary>
+        <p><b>O que é:</b> o Docker reinicia sem derrubar os containers.</p>
+        <p><b>Como provamos:</b> o Docker reiniciou às 11:44 e os containers mantiveram o horário de início de 11:30 e 11:41. Nenhum caiu.</p>
+      </details>
+      <details><summary>Rotação de logs</summary>
+        <p><b>Por que:</b> sem limite, o log de um container cresce até encher o SSD. No r2d2: 10 MB × 3 arquivos por container.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ===================== FASE 3 ===================== -->
+  <section id="fase3" class="panel level">
+    <h2 class="sr-only">Fase 3: CI/CD, a esteira</h2>
+    <p class="level-tag">Fase 3 · concluída</p>
+    <canvas class="ptitle" data-text="A ESTEIRA" data-scale="4" data-color="l" aria-hidden="true"></canvas>
+    <p class="mission"><b>Missão:</b> toda mudança passa por checagens automáticas antes de chegar no servidor, e o servidor se atualiza sozinho sem dar acesso a ninguém.</p>
+
+    <h3>Simulador 5 · O pipeline</h3>
+    <p>Escolha o que vai no commit e mande pela esteira. Cada estação é uma checagem real do GitHub Actions do r2d2. O relógio mostra o tempo real equivalente.</p>
+    <canvas id="sim-pipe" class="scene" aria-label="Esteira do pipeline: um pacote passa por gitleaks, hadolint, checagem de portas, build, Trivy, GHCR e chega ao r2d2, ou é barrado na estação que encontrou o problema."></canvas>
+    <div class="controls">
+      <button class="btn btn-good pipe-run" data-scenario="ok">▶ Commit limpo</button>
+      <button class="btn btn-bad pipe-run" data-scenario="cve">Imagem nginx 1.29</button>
+      <button class="btn btn-bad pipe-run" data-scenario="port">Porta "8080:8080"</button>
+      <button class="btn btn-bad pipe-run" data-scenario="leak">Senha no código</button>
+      <p id="pipe-clock" class="stats clock" aria-live="polite">t+00s</p>
+    </div>
+    <pre id="pipe-log" class="term" aria-live="polite">aguardando um commit…</pre>
+
+    <h3>Push ou pull?</h3>
+    <div class="versus">
+      <div class="vs-card vs-bad">
+        <canvas class="icon" data-sprite="skull" aria-hidden="true"></canvas>
+        <b>Push</b>
+        <p>O GitHub entra no servidor pra fazer o deploy. Precisa de porta aberta ou de uma chave guardada no GitHub. Num repo público, um runner no servidor deixaria qualquer PR rodar código lá.</p>
+      </div>
+      <div class="vs-card vs-good">
+        <canvas class="icon" data-sprite="shield" aria-hidden="true"></canvas>
+        <b>Pull (o escolhido)</b>
+        <p>Um timer no r2d2 busca a imagem nova a cada 2 minutos. Nenhuma porta aberta, nenhuma credencial do servidor fora de casa. É o princípio do GitOps (Flux, ArgoCD).</p>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>O que roda aqui</h2>
-      <ul>
-        <li>Fase 1: Linux endurecido (SSH só chave, ufw, atualizações automáticas)</li>
-        <li>Fase 2: containers com limites, health checks e nenhuma porta em <code>0.0.0.0</code></li>
-        <li>Fase 3: esta página chegou aqui sozinha — commit → GitHub Actions (gitleaks, hadolint, Trivy) → GHCR → o r2d2 puxa e aplica</li>
-        <li>Próximas: IaC, k3s, observabilidade</li>
-      </ul>
+    <div class="scrolls">
+      <details><summary>Shift-left</summary>
+        <p><b>O que é:</b> achar o problema o mais cedo possível, no PR, e não em produção.</p>
+        <p><b>Exemplo real:</b> o pipeline só ficou verde na 5ª tentativa. O Trivy barrou 43 vulnerabilidades HIGH porque a base nginx 1.29 tinha parado de receber patches.</p>
+      </details>
+      <details><summary>Actions fixadas por SHA</summary>
+        <p><b>Por que:</b> uma tag (<code>@v7</code>) pode ser movida pra código malicioso; um SHA de commit, não. Aconteceu com a <code>tj-actions/changed-files</code> em 2025.</p>
+      </details>
+      <details><summary>Dependabot e rebuild semanal</summary>
+        <p><b>O que é:</b> um robô abre PR quando sai versão nova de imagem ou action, e a imagem é reconstruída toda segunda pra pegar patches do Alpine.</p>
+        <p><b>O que aconteceu:</b> o PR do vuln-lab não tinha CI nenhum cobrindo. Criamos o workflow <code>compose</code> antes de aceitar.</p>
+      </details>
+      <details><summary>GHCR e tags</summary>
+        <p><b>O que é:</b> o registry de imagens do GitHub. Cada imagem sai com duas tags: <code>sha-…</code> (imutável, pra rollback) e <code>main</code> (a última).</p>
+      </details>
     </div>
+  </section>
 
-    <div class="card">
-      <h2>Código e decisões</h2>
-      <p><a href="https://github.com/eduardonk9999/homelab">github.com/eduardonk9999/homelab</a></p>
-    </div>
-  </main>
+  <!-- ===================== QUIZ ===================== -->
+  <section id="quiz" class="panel">
+    <h2 class="sr-only">Teste-se</h2>
+    <canvas class="ptitle" data-text="TESTE-SE" data-scale="4" data-color="y" aria-hidden="true"></canvas>
+    <p>Cada acerto de primeira vale 10 XP. Errou? Leia a explicação: é assim que fixa.</p>
+    <div id="quiz-list"></div>
+  </section>
+
+  <!-- ===================== ITENS ===================== -->
+  <section id="itens" class="panel">
+    <h2 class="sr-only">Inventário: glossário</h2>
+    <canvas class="ptitle" data-text="INVENTARIO" data-scale="4" data-color="c" aria-hidden="true"></canvas>
+    <p>Os itens que você coletou nas fases 1 a 3. Toque em um pra ler a descrição.</p>
+    <div id="inv" class="inv" role="group" aria-label="Itens do glossário"></div>
+    <p id="inv-info" class="shield-info" aria-live="polite">Nenhum item selecionado.</p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Servido pelo r2d2: nginx sem root, num container só leitura, publicado pelo próprio pipeline que esta página explica.</p>
+  <p><a href="https://github.com/eduardonk9999/homelab">github.com/eduardonk9999/homelab</a></p>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><p class="panel">Os simuladores precisam de JavaScript, mas todo o texto de estudo está acima.</p></noscript>
 </body>
 </html>
