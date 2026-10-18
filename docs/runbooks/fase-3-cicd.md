@@ -6,8 +6,19 @@ Ver ADR 0004. Commit em `main` → GitHub Actions (checks, build, Trivy, push GH
 
 Arquivo: `.github/workflows/homepage.yml`. Roda em push/PR que mexa em `apps/homepage/**`.
 
-Depois do **primeiro** push bem-sucedido, tornar o pacote público (uma vez só):
-GitHub → perfil → **Packages** → `homelab-homepage` → **Package settings** → *Change visibility* → **Public**.
+O pacote herda a visibilidade do repo (público) pelo label `org.opencontainers.image.source`
+que o `metadata-action` coloca na imagem. Prova: `docker logout ghcr.io && docker pull ghcr.io/eduardonk9999/homelab-homepage:main`
+funciona sem login.
+
+**O que o pipeline barrou na primeira semana (2026-10-18)**, na ordem:
+
+| Tentativa | Barrado por | Causa | Correção |
+|---|---|---|---|
+| 1 | hadolint DL3025 | `HEALTHCHECK` em formato shell | formato JSON |
+| 2 | Trivy | 43 HIGH: base `nginx 1.29` parou de receber patches | base `1.30` (ramo estável) + Dependabot |
+| 3 | Trivy | 1 HIGH: libexpat corrigido no Alpine, ainda não na base | `apk upgrade` no build + rebuild semanal |
+| 4 | hadolint DL3066 | `USER root` não numérico | `USER 0` |
+| 5 | — | verde | imagem publicada |
 
 ## 3.2 Agente de deploy no r2d2
 
@@ -30,8 +41,8 @@ journalctl -u homelab-deploy.service -n 20       # histórico de deploys
 
 ## Critério de pronto da Fase 3
 
-- [ ] pipeline verde no primeiro push (gitleaks, hadolint, portas, Trivy, push)
-- [ ] pacote `homelab-homepage` público no GHCR
+- [x] pipeline verde (gitleaks, hadolint, portas, Trivy, push) — na 5ª tentativa, ver tabela acima
+- [x] pacote `homelab-homepage` público no GHCR (pull anônimo ok)
 - [ ] timer ativo no r2d2, homepage rodando a imagem do GHCR
 - [ ] demo: mudança no HTML chega ao r2d2 sem nenhum comando manual; tempo medido e registrado
 - [ ] PR com porta sem IP de bind é barrado pelo pipeline
