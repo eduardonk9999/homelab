@@ -2,8 +2,9 @@ name: homepage
 
 services:
   web:
+    # Imagem publicada pelo CI (Fase 3). "build" fica para testar localmente: docker compose up --build
+    image: ghcr.io/eduardonk9999/homelab-homepage:main
     build: .
-    image: homepage:local
     restart: unless-stopped
 
     # ADR 0002: nunca 0.0.0.0. Por enquanto só localhost; na Fase 3/4 o Cloudflare Tunnel assume.

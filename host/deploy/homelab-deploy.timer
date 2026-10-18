@@ -1,0 +1,10 @@
+[Unit]
+Description=homelab: verifica deploy a cada 2 minutos
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+RandomizedDelaySec=15s
+
+[Install]
+WantedBy=timers.target
