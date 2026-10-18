@@ -43,6 +43,6 @@ journalctl -u homelab-deploy.service -n 20       # histórico de deploys
 
 - [x] pipeline verde (gitleaks, hadolint, portas, Trivy, push) — na 5ª tentativa, ver tabela acima
 - [x] pacote `homelab-homepage` público no GHCR (pull anônimo ok)
-- [ ] timer ativo no r2d2, homepage rodando a imagem do GHCR
-- [ ] demo: mudança no HTML chega ao r2d2 sem nenhum comando manual; tempo medido e registrado
+- [x] timer ativo no r2d2, homepage rodando a imagem do GHCR (primeiro deploy 2026-10-18 09:43, commit 9314ac2)
+- [x] demo: mudança no HTML chega ao r2d2 sem nenhum comando manual — **84 s** do `git push` (09:44:26) ao deploy (09:45:50), commit 8216dff; CI levou ~80 s
 - [ ] PR com porta sem IP de bind é barrado pelo pipeline
