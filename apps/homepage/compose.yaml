@@ -9,7 +9,7 @@ services:
 
     # ADR 0002: nunca 0.0.0.0. Por enquanto só localhost; na Fase 3/4 o Cloudflare Tunnel assume.
     ports:
-      - "127.0.0.1:8080:8080"
+      - "8080:8080"
 
     read_only: true
     tmpfs:
