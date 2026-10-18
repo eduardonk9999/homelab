@@ -1,5 +1,5 @@
 # Imagem nginx que já roda como usuário sem privilégio (uid 101) e escuta na 8080.
-FROM nginxinc/nginx-unprivileged:1.29-alpine
+FROM nginxinc/nginx-unprivileged:1.30-alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY site/ /usr/share/nginx/html/
