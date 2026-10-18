@@ -20,7 +20,7 @@ services:
 
   # Porta de entrada única. Na Fase 6 vira o WAF (Coraza + OWASP CRS) com logs pro Loki.
   gateway:
-    image: nginxinc/nginx-unprivileged:1.30-alpine
+    image: nginxinc/nginx-unprivileged:1.31-alpine
     restart: unless-stopped
     depends_on:
       - juice-shop
