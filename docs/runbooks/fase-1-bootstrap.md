@@ -153,7 +153,8 @@ O sistema veio de uma instalação desktop. Serviços sem função num servidor 
 (o `cups-browsed` teve falha crítica de execução remota em 2024, CVE-2024-47176).
 
 ```bash
-sudo apt purge -y cups cups-browsed modemmanager && sudo apt autoremove -y
+sudo apt purge -y cups cups-browsed modemmanager
+sudo apt autoremove        # SEM -y: ver postmortem 2026-10-25
 ```
 
 **Pegadinha:** os drivers de impressora (`hplip`, `printer-driver-*`, `bluez-cups`) dependem de "algum cups",
@@ -167,3 +168,7 @@ sudo apt autoremove        # sem -y: ler a lista antes de confirmar
 ```
 
 Verificação: `ss -tln` sem a porta 8000; `apt-mark showmanual network-manager` retorna o pacote.
+
+> **Atenção (postmortem 2026-10-25):** o primeiro `autoremove -y` desta seção removeu o `usb-modeswitch`,
+> e o Wi-Fi USB sumiu no reboot seguinte. Em servidor: nunca `autoremove -y`; leia a lista; faça um reboot
+> de teste depois. Se o adaptador já foi removido: `sudo apt install usb-modeswitch usb-modeswitch-data && sudo apt-mark manual usb-modeswitch usb-modeswitch-data`.
