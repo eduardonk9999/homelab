@@ -42,3 +42,18 @@ O maior gargalo. Decisões que saem daqui:
 | load average > 4 sustentado, `%steal`/`iowait` baixos | CPU (Ryzen 5 5600G) |
 | uso de swap > 0 de forma persistente, OOM kills | RAM |
 | disco > 80% mesmo com limpeza/retenção | SSD extra |
+
+## Segundo nó: Raspberry Pi 5 (planejado — ADR 0005)
+
+Nó de **observabilidade e confiabilidade**, separado do r2d2. Orçamento próprio quando chegar:
+
+| Camada | Estimado | Fase |
+|---|---|---|
+| SO ARM64 idle (headless) | ~300 MB | — |
+| Prometheus (retenção por tempo+tamanho) | ~400–700 MB | 6 |
+| Grafana | ~150 MB | 6 |
+| Loki + coletor | ~300 MB | 6 |
+| Alertmanager + Blackbox exporter | ~100 MB | 6 |
+| Backup (restic/borg, sob demanda) | pico de CPU/IO | 6 |
+
+Disco: **SSD NVMe**, nunca cartão SD (escrita constante do Prometheus). Métricas do r2d2 chegam via node_exporter + cAdvisor + endpoint do Docker (127.0.0.1:9323, ADR 0002).
