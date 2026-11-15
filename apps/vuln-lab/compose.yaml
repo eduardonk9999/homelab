@@ -4,7 +4,7 @@ name: vuln-lab
 
 services:
   juice-shop:
-    image: bkimminich/juice-shop:v20.3.0
+    image: bkimminich/juice-shop:v20.4.0
     restart: unless-stopped
     networks:
       - isolated            # única rede: internal, sem rota pra fora
